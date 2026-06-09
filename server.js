@@ -5,6 +5,7 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
+
 const io = socketIo(server, {
   cors: {
     origin: "*",
@@ -15,6 +16,11 @@ const io = socketIo(server, {
 // Serve static files
 app.use(express.static(__dirname));
 
+// Home route
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
 // Store rooms
 const rooms = new Map();
 
@@ -24,8 +30,7 @@ io.on('connection', (socket) => {
   socket.on('join-room', ({ roomId }) => {
     socket.join(roomId);
     console.log(`📱 User ${socket.id} joined room: ${roomId}`);
-    
-    // Notify others in room
+
     socket.to(roomId).emit('user-joined', { userId: socket.id });
   });
 
@@ -64,10 +69,11 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
+
 server.listen(PORT, () => {
   console.log(`
-  🚀 Server is running!
-  📡 URL: http://localhost:${PORT}
-  📱 Share this URL with others on the same network
-  `);
+🚀 Server is running!
+📡 URL: http://localhost:${PORT}
+📱 Share this URL with others on the same network
+`);
 });
